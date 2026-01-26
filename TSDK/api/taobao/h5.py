@@ -100,17 +100,10 @@ class TaobaoH5(Base):
         cna = re.findall(r'Etag="(.*?)"',res.text)[0]
         self.cookies.set('cna',cna,domain='.taobao.com',path='/')
 
-        # #第三个cookie，isg为算法生成的，不好破解，domain为.taobao.com，path为/
-        # isg = 'BM3NGuFcrQh-tgkk_KLDk9jr3OlHqgF8pnooOQ9SCWTTBu241_oRTBuUcNrFxhk0'
-        # self.cookies.set('isg',isg,domain='.taobao.com',path='/')
-
-        # #第四个cookie，l为算法生成,domain为.taobao.com，path为/
-        # l = 'bBgKwFjlv-QtIl3JBOCanurza77OSIRYYuPzaNbMi_5pK6T_Bk7OlgnjDF96Vj5RsxYB4-L8Y1J9-etkZ'
-        # self.cookies.set('l',l,domain='.taobao.com',path='/')
-
         #   初始化_tb_token,cookie2,t等cookie
-        self.get('https://h5api.m.taobao.com/h5/mtop.user.getusersimple/1.0/')
-        self.get('https://h5api.m.taobao.com/h5/mtop.taobao.wireless.home.load/1.0/?appKey=12574478')
+        res = self.get('https://h5api.m.taobao.com/h5/mtop.user.getusersimple/1.0/')
+        res = self.get('https://h5api.m.taobao.com/h5/mtop.taobao.wireless.home.load/1.0/?appKey=12574478')
+        res = self.getKangaroo()
         self.cookies.set('thw','cn', domain='.taobao.com',path='/')
         self.cookies.set('xlly_s','1', domain='.taobao.com',path='/')
         self.cookies.set('_samesite_flag_','true', domain='.taobao.com',path='/')
@@ -118,7 +111,7 @@ class TaobaoH5(Base):
     def clearCookie(self):
         for key in self.cookies.iterkeys():
             if key not in self.whiteCookieNames:
-                self.cookies.set(key, None)
+                self.cookies.clear(key, None)
 
     @property
     def h5_token(self):
@@ -371,8 +364,13 @@ class TaobaoH5(Base):
             'isIframe':'false',
             'banThirdPartyCookie':'true',
             'documentReferer':'https://www.taobao.com/',
-            'defaultView':'password',
+            'defaultView':'sms',
             'deviceId': self.deviceId,
+            # 'pageTraceId':'',
+            # 'bx-ua':'',
+            # 'bx-umidtoken':'',
+            # 'bx_et':'',
+            # 'x-pipu2':''
         })
         resj = res.json()
         hasError = resj.get('hasError')
@@ -670,6 +668,39 @@ class {typeName}(TypedDict):
         shop.initShop()
 
         return shop
+    
+    def getKangaroo(self):
+        """mtop.user.getKangaroo函数"""
+
+        method = 'get'
+        params = {
+            'jsv': '2.6.1', 
+            'appKey': '12574478', 
+            't': '1700983359826', 
+            'sign': '8b00a80f1fded8662d00ae20d9b3d81c', 
+            'api': 'mtop.tmall.kangaroo.core.service.route.AldLampServiceFixedResV2', 
+            'v': '1.0', 
+            'ecode': '1', 
+            'sessionOption': 'AutoLoginOnly', 
+            'jsonpIncPrefix': 'tbnav', 
+            'type': 'json', 
+            'dataType': 'json', 
+            'callback': 'mtopjsonpliblogin4', 
+            'data': {
+                "params": { "resId": 34667024, "bizId": "443"}
+            }
+        }
+        url = 'https://h5api.m.taobao.com/h5/mtop.tmall.kangaroo.core.service.route.aldlampservicefixedresv2/1.0/'
+
+        request_options = OrderedDict()
+        request_options.setdefault('method', method)
+        request_options.setdefault('url', url)
+        if method.upper() == 'GET':
+            request_options.setdefault('params', params)
+        else:
+            request_options.setdefault('data', params)
+
+        return self._execute(request_options)
 
 
 class ShopH5(TaobaoH5):
